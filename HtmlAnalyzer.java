@@ -3,6 +3,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Stack;
 
 public class HtmlAnalyzer {
 
@@ -14,10 +15,16 @@ public class HtmlAnalyzer {
 
         try {
             String html = HttpFetcher.fetch(args[0]);
+            String result = HtmlParser.parse(html);
+            System.out.println(result);
+        } catch (MalformedHtmlException e) {
+            System.out.println("malformed HTML");
         } catch (Exception e) {
             System.out.println("URL connection error");
         }
     }
+
+    //HTTP
 
     static class HttpFetcher {
 
@@ -29,9 +36,8 @@ public class HtmlAnalyzer {
             connection.setConnectTimeout(5000);
             connection.setReadTimeout(5000);
 
-            int status = connection.getResponseCode();
-            if (status != HttpURLConnection.HTTP_OK) {
-                throw new Exception("Non-OK HTTP response");
+            if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                throw new Exception();
             }
 
             StringBuilder content = new StringBuilder();
@@ -47,5 +53,67 @@ public class HtmlAnalyzer {
 
             return content.toString();
         }
+    }
+
+    //PARSER
+
+    static class HtmlParser {
+
+        static String parse(String html) throws MalformedHtmlException {
+            Stack<String> stack = new Stack<>();
+
+            int maxDepth = -1;
+            String deepestText = null;
+
+            String[] lines = html.split("\n");
+
+            for (String rawLine : lines) {
+                String line = rawLine.trim();
+                if (line.isEmpty()) {
+                    continue;
+                }
+
+                if (isOpeningTag(line)) {
+                    String tag = extractTagName(line);
+                    stack.push(tag);
+                } else if (isClosingTag(line)) {
+                    String tag = extractTagName(line);
+
+                    if (stack.isEmpty() || !stack.pop().equals(tag)) {
+                        throw new MalformedHtmlException();
+                    }
+                } else {
+                    int depth = stack.size();
+                    if (depth > maxDepth) {
+                        maxDepth = depth;
+                        deepestText = line;
+                    }
+                }
+            }
+
+            if (!stack.isEmpty()) {
+                throw new MalformedHtmlException();
+            }
+
+            return deepestText == null ? "" : deepestText;
+        }
+
+        static boolean isOpeningTag(String line) {
+            return line.startsWith("<") && line.endsWith(">") && !line.startsWith("</");
+        }
+
+        static boolean isClosingTag(String line) {
+            return line.startsWith("</") && line.endsWith(">");
+        }
+
+        static String extractTagName(String line) {
+            return line.replaceAll("[</>]", "");
+        }
+    }
+
+    //EXCEPTION
+
+    static class MalformedHtmlException extends Exception {
+        private static final long serialVersionUID = 1L;
     }
 }
