@@ -76,12 +76,14 @@ public class HtmlAnalyzer {
                 if (isOpeningTag(line)) {
                     String tag = extractTagName(line);
                     stack.push(tag);
+
                 } else if (isClosingTag(line)) {
                     String tag = extractTagName(line);
 
                     if (stack.isEmpty() || !stack.pop().equals(tag)) {
                         throw new MalformedHtmlException();
                     }
+
                 } else {
                     int depth = stack.size();
                     if (depth > maxDepth) {
@@ -99,15 +101,21 @@ public class HtmlAnalyzer {
         }
 
         static boolean isOpeningTag(String line) {
-            return line.startsWith("<") && line.endsWith(">") && !line.startsWith("</");
+            return line.startsWith("<")
+                    && line.endsWith(">")
+                    && !line.startsWith("</");
         }
 
         static boolean isClosingTag(String line) {
-            return line.startsWith("</") && line.endsWith(">");
+            return line.startsWith("</")
+                    && line.endsWith(">");
         }
 
         static String extractTagName(String line) {
-            return line.replaceAll("[</>]", "");
+            if (line.startsWith("</")) {
+                return line.substring(2, line.length() - 1);
+            }
+            return line.substring(1, line.length() - 1);
         }
     }
 
