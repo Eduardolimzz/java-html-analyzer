@@ -6,14 +6,19 @@ Java 17 solution for analyzing HTML content and extracting the deepest text node
 - Java 17 only (no external libraries)
 - No DOM / XML / HTML parsers
 
-### Compilation:
+### Compilation
 ```bash
 javac HtmlAnalyzer.java
 ```
 
-### Execution:
+### Execution
 ```bash
 java HtmlAnalyzer <url>
+```
+
+**Example:**
+```bash
+java HtmlAnalyzer http://hiring.axreng.com/internship/example1.html
 ```
 
 ## Output
