@@ -5,3 +5,8 @@
 .DS_Store
 .idea/
 .vscode/
+
+# Build artifacts
+*.tar
+*.tar.gz
+*.iml
